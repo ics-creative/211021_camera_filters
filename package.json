@@ -1,0 +1,16 @@
+{
+  "name": "camera_filter_demo",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^2.6.4"
+  },
+  "dependencies": {
+    "pixi.js": "^6.1.3",
+    "prettier": "^2.4.1"
+  }
+}

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>getUserMediaデモ</title>
+    <link rel="stylesheet" href="../style.css" />
+  </head>
+  <body>
+    <video autoplay></video>
+  </body>
+  <script defer>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const videoElement = document.querySelector("video");
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: videoElement.clientWidth,
+          height: videoElement.clientHeight,
+        },
+        audio: false,
+      });
+      videoElement.srcObject = stream;
+    });
+  </script>
+</html>
