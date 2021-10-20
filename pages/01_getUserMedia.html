@@ -1,24 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="">
   <head>
     <meta charset="UTF-8" />
     <title>getUserMediaデモ</title>
     <link rel="stylesheet" href="../style.css" />
   </head>
   <body>
-    <video autoplay></video>
+    <h1>01 getUserMediaデモ</h1>
+    <div class="video_wrapper">
+      <video autoplay></video>
+    </div>
+    <p>
+      デバイスで取得したstreamオブジェクトをvideoタグのsrcObjectに設定します
+    </p>
   </body>
   <script defer>
+    const videoElement = document.querySelector("video");
+    const mediaProps = {
+      video: {
+        width: videoElement.clientWidth,
+        height: videoElement.clientHeight,
+      },
+      audio: false,
+    };
+
+    // デバイスを取得しstreamを返す関数
+    const getStream = async (constraints) => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        return stream;
+      } catch {
+        alert("デバイスを取得できませんでした");
+      }
+    };
+
+    // 最初のアクション
     document.addEventListener("DOMContentLoaded", async () => {
-      const videoElement = document.querySelector("video");
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: videoElement.clientWidth,
-          height: videoElement.clientHeight,
-        },
-        audio: false,
-      });
-      videoElement.srcObject = stream;
+      const stream = await getStream(mediaProps);
+      videoElement.srcObject = await stream;
     });
   </script>
 </html>
