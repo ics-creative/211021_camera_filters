@@ -8,7 +8,7 @@
   <body>
     <h1>03 canvasへの投影デモ</h1>
     <div class="video_wrapper">
-      <video autoplay muted hidden></video>
+      <video autoplay hidden></video>
       <canvas></canvas>
     </div>
     <p>video要素の映像をcanvas要素に投影します</p>
@@ -83,13 +83,6 @@
       videoElement.srcObject = await stream;
     };
 
-    // 最初のアクション
-    document.addEventListener("DOMContentLoaded", async () => {
-      const stream = await getStream(mediaProps);
-      videoElement.srcObject = await stream;
-      await createCameraButtons();
-    });
-
     // 以下、PixiJSの処理
     const app = new PIXI.Application({
       view: canvasElement,
@@ -99,5 +92,12 @@
     videoSprite.width = canvasElement.width;
     videoSprite.height = canvasElement.height;
     app.stage.addChild(videoSprite);
+
+    // 最初のアクション
+    document.addEventListener("DOMContentLoaded", async () => {
+      const stream = await getStream(mediaProps);
+      videoElement.srcObject = await stream;
+      await createCameraButtons();
+    });
   </script>
 </html>

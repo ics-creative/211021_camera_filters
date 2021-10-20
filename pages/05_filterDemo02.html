@@ -2,20 +2,21 @@
 <html lang="">
   <head>
     <meta charset="UTF-8" />
-    <title>04 組み込みフィルターのデモ</title>
+    <title>05 外部フィルターのデモ</title>
     <link rel="stylesheet" href="../style.css" />
   </head>
   <body>
-    <h1>04 組み込みフィルターのデモ</h1>
+    <h1>05 外部フィルターのデモ</h1>
     <div class="video_wrapper">
       <video autoplay hidden></video>
       <canvas></canvas>
     </div>
-    <p>PixiJSの組み込みフィルター（ノイズ、色彩、歪み、ブラー）を使用します</p>
+    <p>PixiJSの外部フィルターを使用します</p>
     <div class="input_wrapper"></div>
   </body>
   <script type="module" defer>
     import * as PIXI from "pixi.js";
+    import { OldFilmFilter, GodrayFilter } from "pixi-filters";
 
     const videoElement = document.querySelector("video");
     const canvasElement = document.querySelector("canvas");
@@ -67,7 +68,6 @@
       inputWrapper.querySelectorAll("input").forEach((el) => {
         el.addEventListener("change", (e) => {
           changeDevice(e.target.value);
-          // videoElement.play()
         });
       });
     };
@@ -97,29 +97,26 @@
       videoSprite.width = canvasElement.width;
       videoSprite.height = canvasElement.height;
       app.stage.addChild(videoSprite);
+      applyFilter();
     };
 
     // フィルターを適用する
     const applyFilter = () => {
-      // ノイズフィルター
-      const noiseFilter = new PIXI.filters.NoiseFilter(0.5, 0.2);
-      // 色彩フィルター
-      const colorMatrixFilter = new PIXI.filters.ColorMatrixFilter();
-      colorMatrixFilter.greyscale(0.2);
-      // 歪みフィルター
-      const displacementSprite = PIXI.Sprite.from("../assets/noise.png");
-      displacementSprite.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
-      const displacementFilter = new PIXI.filters.DisplacementFilter(
-        displacementSprite
-      );
-      // ブラーフィルター
-      const blurFilter = new PIXI.filters.BlurFilter(4);
-      app.stage.filters = [
-        colorMatrixFilter,
-        displacementFilter,
-        blurFilter,
-        noiseFilter,
-      ];
+      // 古テレビフィルター
+      const oldFilter = new OldFilmFilter();
+      const updateOldFilter = () => {
+        oldFilter.seed = Math.random();
+        requestAnimationFrame(updateOldFilter);
+      };
+      updateOldFilter();
+      // 神の光フィルター
+      const godRayFilter = new GodrayFilter();
+      const updateGodRayFilter = () => {
+        godRayFilter.time += 0.01;
+        requestAnimationFrame(updateGodRayFilter);
+      };
+      updateGodRayFilter();
+      app.stage.filters = [godRayFilter];
     };
 
     // 最初のアクション
@@ -127,8 +124,8 @@
       const stream = await getStream(mediaProps);
       videoElement.srcObject = await stream;
       await createCameraButtons();
+      await videoElement.play();
       createStage();
-      applyFilter();
     });
   </script>
 </html>
