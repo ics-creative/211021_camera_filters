@@ -12,6 +12,14 @@ module.exports = defineConfig({
         page3: resolve(__dirname, '/pages/03_canvasDemo.html'),
         page4: resolve(__dirname, '/pages/04_filterDemo01.html'),
         page5: resolve(__dirname, '/pages/05_filterDemo02.html')
+      },
+      external: ['pixi.js'],
+      output: {
+        // 外部化された依存関係のために UMD のビルドで使用する
+        // グローバル変数を提供します
+        globals: {
+          vue: 'PIXI'
+        }
       }
     }
   }
