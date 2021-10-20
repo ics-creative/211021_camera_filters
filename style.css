@@ -7,7 +7,7 @@
   margin-top: 60px;
 }
 
-video {
+video, canvas {
   width: 720px;
   height: 480px;
   background: #000;

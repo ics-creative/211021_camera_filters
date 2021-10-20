@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="UTF-8" />
+    <title>04 組み込みフィルターのデモ</title>
+    <link rel="stylesheet" href="../style.css" />
+  </head>
+  <body>
+    <h1>04 組み込みフィルターのデモ</h1>
+    <div class="video_wrapper">
+      <video autoplay muted hidden></video>
+      <canvas></canvas>
+    </div>
+    <p>PixiJSの組み込みフィルター（ノイズ、色彩、歪み）を使用します</p>
+    <div class="input_wrapper"></div>
+  </body>
+  <script type="module" defer>
+    import * as PIXI from "pixi.js";
+
+    const videoElement = document.querySelector("video");
+    const canvasElement = document.querySelector("canvas");
+    const mediaProps = {
+      video: {
+        width: videoElement.clientWidth,
+        height: videoElement.clientHeight,
+      },
+      audio: false,
+    };
+
+    /** デバイスを取得しstreamを返す関数 */
+    const getStream = async (constraints) => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        return stream;
+      } catch {
+        alert("デバイスを取得できませんでした");
+      }
+    };
+
+    /** アクセスできるデバイスのリストを取得する  */
+    const getDeviceList = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        return devices;
+      } catch {
+        return [];
+      }
+    };
+
+    const createCameraButtons = async () => {
+      // カメラデバイスを取得
+      const devices = await getDeviceList();
+      const cameraDevices = devices.filter(
+        (device) => device.kind === "videoinput"
+      );
+
+      // input要素を動的に生成
+      const inputElement = (value, label) =>
+        `<label><input name="camera" type="radio" value=${value.toString()} />${label.toString()}</label><br />`;
+      const inputWrapper = document.querySelector(".input_wrapper");
+      const deviceInputList = cameraDevices.reduce(
+        (prev, device) => prev + inputElement(device.deviceId, device.label),
+        ""
+      );
+      inputWrapper.innerHTML = deviceInputList;
+      // 生成したinput要素にイベントを追加
+      inputWrapper.querySelectorAll("input").forEach((el) => {
+        el.addEventListener("change", (e) => {
+          changeDevice(e.target.value);
+        });
+      });
+    };
+
+    // 引数のidを元に、videoのsrcObjectを設定し直します
+    const changeDevice = async (id) => {
+      const stream = await getStream({
+        video: {
+          width: videoElement.clientWidth,
+          height: videoElement.clientHeight,
+          deviceId: id,
+        },
+      });
+      videoElement.srcObject = await stream;
+    };
+
+    // 以下、PixiJSの処理
+    let app;
+
+    // PixiJSアプリケーションの作成
+    const createStage = () => {
+      app = new PIXI.Application({
+        view: canvasElement,
+      });
+      // videoのスプライト化
+      const videoSprite = PIXI.Sprite.from(videoElement);
+      videoSprite.width = canvasElement.width;
+      videoSprite.height = canvasElement.height;
+      app.stage.addChild(videoSprite);
+      applyFilter();
+    };
+
+    // フィルターを適用する
+    const applyFilter = () => {
+      // ノイズフィルター
+      const noiseFilter = new PIXI.filters.NoiseFilter(0.5, 0.2);
+      // 色彩フィルター
+      const colorMatrixFilter = new PIXI.filters.ColorMatrixFilter();
+      colorMatrixFilter.greyscale(0.2);
+      // 歪みフィルター
+      const displacementSprite = PIXI.Sprite.from("../assets/noise.png");
+      displacementSprite.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
+      const displacementFilter = new PIXI.filters.DisplacementFilter(
+        displacementSprite
+      );
+      app.stage.filters = [noiseFilter, colorMatrixFilter, displacementFilter];
+    };
+
+    // 最初のアクション
+    document.addEventListener("DOMContentLoaded", async () => {
+      const stream = await getStream(mediaProps);
+      videoElement.srcObject = await stream;
+      await createCameraButtons();
+      await videoElement.play();
+      createStage();
+    });
+  </script>
+</html>
