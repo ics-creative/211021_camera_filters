@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <title>05 外部フィルターのデモ</title>
     <link rel="stylesheet" href="../style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.3/pixi.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pixi-filters@latest/dist/pixi-filters.js"></script>
   </head>
   <body>
     <h1>05 外部フィルターのデモ</h1>
@@ -15,9 +17,6 @@
     <div class="input_wrapper"></div>
   </body>
   <script type="module" defer>
-    import * as PIXI from "pixi.js";
-    import { OldFilmFilter, GodrayFilter } from "pixi-filters";
-
     const videoElement = document.querySelector("video");
     const canvasElement = document.querySelector("canvas");
     const mediaProps = {
@@ -103,14 +102,14 @@
     // フィルターを適用する
     const applyFilter = () => {
       // 古テレビフィルター
-      const oldFilter = new OldFilmFilter();
+      const oldFilter = new PIXI.filters.OldFilmFilter();
       const updateOldFilter = () => {
         oldFilter.seed = Math.random();
         requestAnimationFrame(updateOldFilter);
       };
       updateOldFilter();
       // 神の光フィルター
-      const godRayFilter = new GodrayFilter();
+      const godRayFilter = new PIXI.filters.GodrayFilter();
       const updateGodRayFilter = () => {
         godRayFilter.time += 0.01;
         requestAnimationFrame(updateGodRayFilter);
