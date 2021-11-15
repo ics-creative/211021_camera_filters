@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="UTF-8" />
+    <title>06 自作フィルターのデモ</title>
+    <link rel="stylesheet" href="../style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.3/pixi.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pixi-filters@latest/dist/pixi-filters.js"></script>
+  </head>
+  <body>
+    <h1>05 外部フィルターのデモ</h1>
+    <div class="video_wrapper">
+      <video autoplay hidden></video>
+      <canvas></canvas>
+    </div>
+    <p>PixiJSの外部フィルターを使用します</p>
+    <div class="input_wrapper"></div>
+  </body>
+  <script id="fragmentShader" type="x-shader/x-fragment">
+    varying vec2 vTextureCoord;
+    uniform sampler2D uSampler;
+
+    void main() {
+      vec4 color = texture2D(uSampler, vTextureCoord);
+      gl_FragColor = vec4(1.0 - color.x, 1.0 - color.y, 1.0 - color.z, 1.0);
+    }
+
+  </script>
+  <script type="module" defer>
+    const videoElement = document.querySelector("video");
+    const canvasElement = document.querySelector("canvas");
+    const mediaProps = {
+      video: {
+        width: videoElement.clientWidth,
+        height: videoElement.clientHeight,
+      },
+      audio: false,
+    };
+
+    /** デバイスを取得しstreamを返す関数 */
+    const getStream = async (constraints) => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        return stream;
+      } catch {
+        alert("デバイスを取得できませんでした");
+      }
+    };
+
+    /** アクセスできるデバイスのリストを取得する  */
+    const getDeviceList = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        return devices;
+      } catch {
+        return [];
+      }
+    };
+
+    const createCameraButtons = async () => {
+      // カメラデバイスを取得
+      const devices = await getDeviceList();
+      const cameraDevices = devices.filter(
+        (device) => device.kind === "videoinput"
+      );
+
+      // input要素を動的に生成
+      const inputElement = (value, label) =>
+        `<label><input name="camera" type="radio" value=${value.toString()} />${label.toString()}</label><br />`;
+      const inputWrapper = document.querySelector(".input_wrapper");
+      const deviceInputList = cameraDevices.reduce(
+        (prev, device) => prev + inputElement(device.deviceId, device.label),
+        ""
+      );
+      inputWrapper.innerHTML = deviceInputList;
+      // 生成したinput要素にイベントを追加
+      inputWrapper.querySelectorAll("input").forEach((el) => {
+        el.addEventListener("change", (e) => {
+          changeDevice(e.target.value);
+        });
+      });
+    };
+
+    // 引数のidを元に、videoのsrcObjectを設定し直します
+    const changeDevice = async (id) => {
+      const stream = await getStream({
+        video: {
+          width: videoElement.clientWidth,
+          height: videoElement.clientHeight,
+          deviceId: id,
+        },
+      });
+      videoElement.srcObject = await stream;
+    };
+
+    // 以下、PixiJSの処理
+    let app;
+
+    // PixiJSアプリケーションの作成
+    const createStage = () => {
+      app = new PIXI.Application({
+        view: canvasElement,
+      });
+      // videoのスプライト化
+      const videoSprite = PIXI.Sprite.from(videoElement);
+      videoSprite.width = canvasElement.width;
+      videoSprite.height = canvasElement.height;
+      app.stage.addChild(videoSprite);
+      applyFilter();
+    };
+
+    // フィルターを適用する TODO パラメーター渡したい
+    const applyFilter = () => {
+      const myFilter = new PIXI.Filter(PIXI.defaultVertex, document.getElementById("fragmentShader").textContent , {fMosaicScale: 10.0})
+
+      app.stage.filters = [myFilter];
+    };
+
+    // 最初のアクション
+    document.addEventListener("DOMContentLoaded", async () => {
+      const stream = await getStream(mediaProps);
+      videoElement.srcObject = await stream;
+      await createCameraButtons();
+      await videoElement.play();
+      createStage();
+    });
+  </script>
+</html>
