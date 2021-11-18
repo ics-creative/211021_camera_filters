@@ -85,7 +85,6 @@
     document.addEventListener("DOMContentLoaded", async () => {
       const stream = await getStream(mediaProps);
       videoElement.srcObject = await stream;
-      await createCameraButtons();
       createStage();
       applyFilter();
     });
