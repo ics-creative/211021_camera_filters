@@ -5,29 +5,22 @@
     <title>canvasへの投影デモ</title>
     <link rel="stylesheet" href="../style.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.3/pixi.min.js"></script>
-    <style>
-      video {
-        /*opacity: 0;*/
-        /*position: absolute;*/
-      }
-    </style>
   </head>
   <body>
     <h1>03 canvasへの投影デモ</h1>
     <div class="video_wrapper">
       <div style="display: flex">
-      <div>
-        <h2>videoタグ</h2>
-      <video autoplay></video>
-      </div>
-      <div>
-        <h2>canvasタグ</h2>
-      <canvas></canvas>
-      </div>
+        <div>
+          <h2>videoタグ</h2>
+          <video autoplay></video>
+        </div>
+        <div>
+          <h2>canvasタグ</h2>
+          <canvas></canvas>
+        </div>
       </div>
     </div>
     <p>video要素の映像をcanvas要素に投影します</p>
-<!--    <div class="input_wrapper"></div>-->
   </body>
   <script defer>
     const videoElement = document.querySelector("video");
@@ -50,52 +43,6 @@
       }
     };
 
-    /** アクセスできるデバイスのリストを取得する  */
-    const getDeviceList = async () => {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        return devices;
-      } catch {
-        return [];
-      }
-    };
-
-    const createCameraButtons = async () => {
-      // カメラデバイスを取得
-      const devices = await getDeviceList();
-      const cameraDevices = devices.filter(
-        (device) => device.kind === "videoinput"
-      );
-
-      // input要素を動的に生成
-      const inputElement = (value, label) =>
-        `<label><input name="camera" type="radio" value=${value.toString()} />${label.toString()}</label><br />`;
-      const inputWrapper = document.querySelector(".input_wrapper");
-      const deviceInputList = cameraDevices.reduce(
-        (prev, device) => prev + inputElement(device.deviceId, device.label),
-        ""
-      );
-      inputWrapper.innerHTML = deviceInputList;
-      // 生成したinput要素にイベントを追加
-      inputWrapper.querySelectorAll("input").forEach((el) => {
-        el.addEventListener("change", (e) => {
-          changeDevice(e.target.value);
-        });
-      });
-    };
-
-    // 引数のidを元に、videoのsrcObjectを設定し直します
-    const changeDevice = async (id) => {
-      const stream = await getStream({
-        video: {
-          width: videoElement.clientWidth,
-          height: videoElement.clientHeight,
-          deviceId: id,
-        },
-      });
-      videoElement.srcObject = await stream;
-    };
-
     // 以下、PixiJSの処理
     const app = new PIXI.Application({
       view: canvasElement,
@@ -110,7 +57,6 @@
     document.addEventListener("DOMContentLoaded", async () => {
       const stream = await getStream(mediaProps);
       videoElement.srcObject = await stream;
-      await createCameraButtons();
     });
   </script>
 </html>

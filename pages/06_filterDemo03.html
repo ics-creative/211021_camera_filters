@@ -11,11 +11,6 @@
         opacity: 0;
         position: absolute;
       }
-      body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
     </style>
   </head>
   <body>
@@ -24,88 +19,26 @@
       <video autoplay></video>
       <canvas></canvas>
     </div>
-    <p>自作フィルターを使用します。マウスの座標によってモザイクの大きさが変化します</p>
+    <p>
+      自作フィルターを使用します。マウスの座標によってモザイクの大きさが変化します
+    </p>
     <div class="input_wrapper"></div>
   </body>
   <script id="fragmentShader" type="x-shader/x-fragment">
     varying vec2 vTextureCoord;
     uniform sampler2D uSampler;
-//    uniform float rValue;
-//    uniform float gValue;
-//
-//    void main() {
-//      vec3 color = texture2D(uSampler, vTextureCoord).rgb;
-//      gl_FragColor = vec4(color.r * rValue, color.g * gValue, color.b, 1.0).rgba;
-//    }
-
-    // 参考：https://clemz.io/article-retro-shaders-webgl.html
-//    void main()
-//    {
-//      vec3 color = texture2D(uSampler, vTextureCoord).rgb;
-//
-//      float gamma = 1.5;
-//      color.r = pow(color.r, gamma);
-//      color.g = pow(color.g, gamma);
-//      color.b = pow(color.b, gamma);
-//
-//      vec3 col1 = vec3(0.612, 0.725, 0.086);
-//      vec3 col2 = vec3(0.549, 0.667, 0.078);
-//      vec3 col3 = vec3(0.188, 0.392, 0.188);
-//      vec3 col4 = vec3(0.063, 0.247, 0.063);
-//
-//      float dist1 = length(color - col1);
-//      float dist2 = length(color - col2);
-//      float dist3 = length(color - col3);
-//      float dist4 = length(color - col4);
-//
-//      float d = min(dist1, dist2);
-//      d = min(d, dist3);
-//      d = min(d, dist4);
-//
-//      if (d == dist1) {
-//        color = col1;
-//      }
-//      else if (d == dist2) {
-//        color = col2;
-//      }
-//      else if (d == dist3) {
-//        color = col3;
-//      }
-//      else {
-//        color = col4;
-//      }
-//
-//      gl_FragColor = vec4(color, 1.0).rgba;
-//    }
-
-
     uniform vec4 outputFrame;
     uniform float fMosaicScale;
     void main() {
       vec2 vUv2 = vTextureCoord;
       vUv2.x = floor(vUv2.x * outputFrame.z / fMosaicScale) / (outputFrame.z / fMosaicScale) + (fMosaicScale / 2.0) / outputFrame.z;
       vUv2.y = floor(vUv2.y * outputFrame.w / fMosaicScale) / (outputFrame.w / fMosaicScale) + (fMosaicScale / 2.0) / outputFrame.w;
-
       vec4 color = texture2D(uSampler, vUv2);
       gl_FragColor = color;
     }
-
-
   </script>
   <script type="module" defer>
-    const fragment = `
-      varying vec2 vTextureCoord;
-      uniform sampler2D uSampler;
-      uniform vec4 outputFrame;
-      uniform float fMosaicScale;
-      void main() {
-        vec2 vUv2 = vTextureCoord;
-        vUv2.x = floor(vUv2.x * outputFrame.z / fMosaicScale) / (outputFrame.z / fMosaicScale) + (fMosaicScale / 2.0) / outputFrame.z;
-        vUv2.y = floor(vUv2.y * outputFrame.w / fMosaicScale) / (outputFrame.w / fMosaicScale) + (fMosaicScale / 2.0) / outputFrame.w;
-        vec4 color = texture2D(uSampler, vUv2);
-        gl_FragColor = color;
-      }
-    `
+    const fragment = document.getElementById("fragmentShader").textContent;
 
     const videoElement = document.querySelector("video");
     const canvasElement = document.querySelector("canvas");
@@ -127,52 +60,6 @@
       }
     };
 
-    /** アクセスできるデバイスのリストを取得する  */
-    const getDeviceList = async () => {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        return devices;
-      } catch {
-        return [];
-      }
-    };
-
-    const createCameraButtons = async () => {
-      // カメラデバイスを取得
-      const devices = await getDeviceList();
-      const cameraDevices = devices.filter(
-        (device) => device.kind === "videoinput"
-      );
-
-      // input要素を動的に生成
-      const inputElement = (value, label) =>
-        `<label><input name="camera" type="radio" value=${value.toString()} />${label.toString()}</label><br />`;
-      const inputWrapper = document.querySelector(".input_wrapper");
-      const deviceInputList = cameraDevices.reduce(
-        (prev, device) => prev + inputElement(device.deviceId, device.label),
-        ""
-      );
-      inputWrapper.innerHTML = deviceInputList;
-      // 生成したinput要素にイベントを追加
-      inputWrapper.querySelectorAll("input").forEach((el) => {
-        el.addEventListener("change", (e) => {
-          changeDevice(e.target.value);
-        });
-      });
-    };
-
-    // 引数のidを元に、videoのsrcObjectを設定し直します
-    const changeDevice = async (id) => {
-      const stream = await getStream({
-        video: {
-          width: videoElement.clientWidth,
-          height: videoElement.clientHeight,
-          deviceId: id,
-        },
-      });
-      videoElement.srcObject = await stream;
-    };
-
     // 以下、PixiJSの処理
     let app;
 
@@ -191,7 +78,9 @@
 
     // フィルターを適用する TODO パラメーター渡したい
     const applyFilter = () => {
-      const myFilter = new PIXI.Filter(PIXI.defaultVertex, fragment , {fMosaicScale: mouse.x * 30})
+      const myFilter = new PIXI.Filter(PIXI.defaultVertex, fragment, {
+        fMosaicScale: mouse.x * 30,
+      });
       app.stage.filters = [myFilter];
     };
 
@@ -199,16 +88,15 @@
     document.addEventListener("DOMContentLoaded", async () => {
       const stream = await getStream(mediaProps);
       videoElement.srcObject = await stream;
-      await createCameraButtons();
       await videoElement.play();
       createStage();
     });
 
-    const mouse = {x: 1.0, y: 1.0}
+    const mouse = { x: 1.0, y: 1.0 };
     document.addEventListener("mousemove", (e) => {
-      mouse.x = e.x / canvasElement.width
-      mouse.y = e.y / canvasElement.height
-      applyFilter()
-    })
+      mouse.x = e.x / canvasElement.width;
+      mouse.y = e.y / canvasElement.height;
+      applyFilter();
+    });
   </script>
 </html>

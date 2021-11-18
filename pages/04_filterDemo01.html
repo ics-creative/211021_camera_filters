@@ -10,11 +10,6 @@
         opacity: 0;
         position: absolute;
       }
-      body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
     </style>
   </head>
   <body>
@@ -45,53 +40,6 @@
       } catch {
         alert("デバイスを取得できませんでした");
       }
-    };
-
-    /** アクセスできるデバイスのリストを取得する  */
-    const getDeviceList = async () => {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        return devices;
-      } catch {
-        return [];
-      }
-    };
-
-    const createCameraButtons = async () => {
-      // カメラデバイスを取得
-      const devices = await getDeviceList();
-      const cameraDevices = devices.filter(
-        (device) => device.kind === "videoinput"
-      );
-
-      // input要素を動的に生成
-      const inputElement = (value, label) =>
-        `<label><input name="camera" type="radio" value=${value.toString()} />${label.toString()}</label><br />`;
-      const inputWrapper = document.querySelector(".input_wrapper");
-      const deviceInputList = cameraDevices.reduce(
-        (prev, device) => prev + inputElement(device.deviceId, device.label),
-        ""
-      );
-      inputWrapper.innerHTML = deviceInputList;
-      // 生成したinput要素にイベントを追加
-      inputWrapper.querySelectorAll("input").forEach((el) => {
-        el.addEventListener("change", (e) => {
-          changeDevice(e.target.value);
-          // videoElement.play()
-        });
-      });
-    };
-
-    // 引数のidを元に、videoのsrcObjectを設定し直します
-    const changeDevice = async (id) => {
-      const stream = await getStream({
-        video: {
-          width: videoElement.clientWidth,
-          height: videoElement.clientHeight,
-          deviceId: id,
-        },
-      });
-      videoElement.srcObject = await stream;
     };
 
     // 以下、PixiJSの処理
